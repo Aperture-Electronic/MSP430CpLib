@@ -52,6 +52,7 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="msp430cp_gpio.cpp" />
+    <ClCompile Include="msp430cp_registers.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="mcu.props" />
@@ -62,7 +63,9 @@
     <Xml Include="MCU.xml" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="msp430cp_device.h" />
     <ClInclude Include="msp430cp_gpio.h" />
+    <ClInclude Include="msp430cp_registers.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,8 +1,9 @@
-#pragma once
+#include <msp430.h>
+#include "msp430cp_registers.h"
 
 // GPIO location enumerations and definations
 /// <summary>
-/// GPIO Port IO (Each port has up to 8 GPIO pins. Only P1/P2 port have interrupt capability)
+/// GPIO Port (Each port has up to 8 GPIO pins. Only P1/P2 port have interrupt capability)
 /// <para>NOTE: The port is usable or not, is depending on the device, see also the device's datasheet to get more information.</para>
 /// </summary>
 enum class MSP430_GPIO_Port
@@ -17,6 +18,17 @@ enum class MSP430_GPIO_Port
 	P8
 };
 
+/// <summary>
+/// GPIO Pin Id
+/// </summary>
+typedef unsigned char MSP430_GPIO_Pin;
+
+// GPIO status definations
+/// <summary>
+/// GPIO status(High or low) defined by a 8-bits unsigned integer (0 for low, other for high)
+/// </summary>
+typedef unsigned char MSP430_GPIO_Value;
+
 // GPIO functions/modes configurations enumerations
 /// <summary>
 /// GPIO Direction (Results in PxDIR register)
@@ -25,8 +37,8 @@ enum class MSP430_GPIO_Port
 /// </summary>
 enum class MSP430_GPIO_Direction
 {
-	Input,
-	Output
+	Input = 0,
+	Output = 1
 };
 
 /// <summary>
@@ -42,10 +54,10 @@ enum class MSP430_GPIO_Direction
 /// </summary>
 enum class MSP430_GPIO_Function
 {
-	Stardand,
-	Primary,
-	Reserved,
-	Secondary
+	Stardand = 0b00,
+	Primary = 0b01,
+	Reserved = 0b10,
+	Secondary = 0b11
 };
 
 /// <summary>
@@ -54,8 +66,8 @@ enum class MSP430_GPIO_Function
 /// </summary>
 enum class MSP430_GPIO_PullResistor
 {
-	On,
-	Off
+	Off = 0,
+	On = 1
 };
 
 // GPIO interrupt configuration enumerations
@@ -65,8 +77,8 @@ enum class MSP430_GPIO_PullResistor
 /// </summary>
 enum class MSP430_GPIO_InterruptSwitch
 {
-	On,
-	Off
+	Off = 0,
+	On = 1
 };
 
 /// <summary>
@@ -78,35 +90,78 @@ enum class MSP430_GPIO_InterruptSwitch
 enum class MSP430_GPIO_InterruptTrig
 {
 	/// <summary>Interrupt when input 0 -> 1 (Verilog: always@(posedge pin))</summary>
-	Posedge,
+	Posedge = 0,
 	/// <summary>Interrupt when input 1 -> 0 (Verilog: always@(negedge pin))</summary>
-	Negedge
+	Negedge = 1
 };
 
 /// <summary>
 /// MSP430 GPIO(General purpose I/O) pin class
 /// </summary>
-class MSP430_GPIO_Pin
+class MSP430_GPIO
 {
 private:
+	// Register for hardware operation
+	REG_8b reg_PxIN;
+	REG_8b reg_PxOUT;
+	REG_8b reg_PxDIR;
+	REG_8b reg_PxREN;
+	REG_8b reg_PxSEL;
+#ifdef GPIO_PORT_HAS_FUNSEL2
+	REG_8b reg_PxSEL2;
+#endif
+#ifdef GPIO_PORT_HAS_DS
+	REG_8b reg_PxDS
+#endif
+	REG_8b reg_PxIE;
+	REG_8b reg_PxIFG;
+	REG_8b reg_PxIES;
+
 	// Corresponding GPIO location (Port and ID)
 
+	// Port
+	MSP430_GPIO_Port port;
+
+	// Pin Id
+	MSP430_GPIO_Pin pin;
+	
 
 	// Corresponding GPIO function/mode configuration
+
 	// Pin function
-	MSP430_GPIO_Function function;
+	MSP430_GPIO_Function function = MSP430_GPIO_Function::Stardand;
 	// Pin direction
-	MSP430_GPIO_Direction direction;
+	MSP430_GPIO_Direction direction = MSP430_GPIO_Direction::Output;
 	// Pullup/pulldown resistor
-	MSP430_GPIO_PullResistor pullResistor;
+	MSP430_GPIO_PullResistor pullResistor = MSP430_GPIO_PullResistor::Off;
 
 	// Corrsponding GPIO interrupt configuration
+
 	// Interrupt switch
-	MSP430_GPIO_InterruptSwitch interruptSw;
+	MSP430_GPIO_InterruptSwitch interruptSw = MSP430_GPIO_InterruptSwitch::Off;
 	// Interrupt trig mode
 	MSP430_GPIO_InterruptTrig interruptTrig;
 
 public:
-	MSP430_GPIO_Pin();
+	// Constructor
+	MSP430_GPIO(MSP430_GPIO_Port port, MSP430_GPIO_Pin pin);
+	MSP430_GPIO(MSP430_GPIO_Port port, MSP430_GPIO_Pin pin, MSP430_GPIO_Function function, MSP430_GPIO_Direction direction);
+	MSP430_GPIO(MSP430_GPIO_Port port, MSP430_GPIO_Pin pin, MSP430_GPIO_Function function, MSP430_GPIO_Direction direction, MSP430_GPIO_PullResistor pullResistor);
 
+	// Interrupt control (Separate control)
+	void EnableInterrupt(MSP430_GPIO_InterruptTrig interruptTrig);
+	void DisableInterrupt(void);
+	bool CheckInterruptFlag(void);
+	void ClearInterruptFlag(void);
+
+	// GPIO initialize or re-configuration
+	void Initialize();
+
+	// Stardand GPIO operation
+	void SetHigh();
+	void SetLow();
+	void SetValue(MSP430_GPIO_Value status);
+	MSP430_GPIO_Value GetValue();
+	bool CheckHigh();
+	bool CheckLow();
 };

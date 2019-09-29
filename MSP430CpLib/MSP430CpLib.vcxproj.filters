@@ -56,9 +56,18 @@
     <ClCompile Include="msp430cp_gpio.cpp">
       <Filter>MSP430CpLib\Source files</Filter>
     </ClCompile>
+    <ClCompile Include="msp430cp_registers.cpp">
+      <Filter>MSP430CpLib\Source files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="msp430cp_gpio.h">
+      <Filter>MSP430CpLib\Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="msp430cp_registers.h">
+      <Filter>MSP430CpLib\Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="msp430cp_device.h">
       <Filter>MSP430CpLib\Header files</Filter>
     </ClInclude>
   </ItemGroup>
