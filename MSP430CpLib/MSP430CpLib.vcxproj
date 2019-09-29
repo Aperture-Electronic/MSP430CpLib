@@ -50,7 +50,8 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="LEDBlink.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="msp430cp_gpio.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="mcu.props" />
@@ -59,6 +60,9 @@
   </ItemGroup>
   <ItemGroup>
     <Xml Include="MCU.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="msp430cp_gpio.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

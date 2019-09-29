@@ -23,11 +23,15 @@
       <UniqueIdentifier>{988f6208-ed48-4f2e-a10e-5de1ec266d78}</UniqueIdentifier>
       <Extensions>vgdbsettings</Extensions>
     </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="LEDBlink.cpp">
-      <Filter>Source files</Filter>
-    </ClCompile>
+    <Filter Include="MSP430CpLib">
+      <UniqueIdentifier>{d36f52f3-1237-402c-8c6b-bde07119c3b0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MSP430CpLib\Source files">
+      <UniqueIdentifier>{fa2cc6df-f59f-4d99-b4e7-f9666880e877}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MSP430CpLib\Header files">
+      <UniqueIdentifier>{0b5c4179-ad47-46f4-bd48-085530d42aa9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="mcu.props">
@@ -44,5 +48,18 @@
     <Xml Include="MCU.xml">
       <Filter>VisualGDB settings</Filter>
     </Xml>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="msp430cp_gpio.cpp">
+      <Filter>MSP430CpLib\Source files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="msp430cp_gpio.h">
+      <Filter>MSP430CpLib\Header files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
