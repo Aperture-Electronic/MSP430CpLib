@@ -102,6 +102,7 @@ class MSP430_GPIO
 {
 private:
 	// Register for hardware operation
+
 	REG_8b reg_PxIN;
 	REG_8b reg_PxOUT;
 	REG_8b reg_PxDIR;
@@ -118,29 +119,27 @@ private:
 	REG_8b reg_PxIES;
 
 	// Corresponding GPIO location (Port and ID)
-
-	// Port
+	/// <summary>Port</summary>
 	MSP430_GPIO_Port port;
-
-	// Pin Id
+	/// <summary>Pin Id</summary>
 	MSP430_GPIO_Pin pin;
 	
-
 	// Corresponding GPIO function/mode configuration
-
-	// Pin function
+	/// <summary>Pin function</summary>
 	MSP430_GPIO_Function function = MSP430_GPIO_Function::Stardand;
-	// Pin direction
+	/// <summary>Pin direction</summary>
 	MSP430_GPIO_Direction direction = MSP430_GPIO_Direction::Output;
-	// Pullup/pulldown resistor
+	/// <summary>Pullup/pulldown resistor</summary>
 	MSP430_GPIO_PullResistor pullResistor = MSP430_GPIO_PullResistor::Off;
 
 	// Corrsponding GPIO interrupt configuration
-
-	// Interrupt switch
+	/// <summary>Interrupt switch</summary>
 	MSP430_GPIO_InterruptSwitch interruptSw = MSP430_GPIO_InterruptSwitch::Off;
-	// Interrupt trig mode
+	/// <summary>Interrupt trig mode</summary>
 	MSP430_GPIO_InterruptTrig interruptTrig;
+
+	// Private low-level linking functions
+	void HardLink(void);
 
 public:
 	// Constructor
@@ -155,13 +154,22 @@ public:
 	void ClearInterruptFlag(void);
 
 	// GPIO initialize or re-configuration
-	void Initialize();
+	void Initialize(void);
+	void Deinitialize(void);
 
 	// Stardand GPIO operation
-	void SetHigh();
-	void SetLow();
+	void SetHigh(void);
+	void SetLow(void);
 	void SetValue(MSP430_GPIO_Value status);
-	MSP430_GPIO_Value GetValue();
-	bool CheckHigh();
-	bool CheckLow();
+	MSP430_GPIO_Value GetValue(void);
+	bool CheckHigh(void);
+	bool CheckLow(void);
+
+	// Dymanic GPIO operation
+	void ReverseValue(void);
+	void ReverseDirection(void);
+	void SetDirection(MSP430_GPIO_Direction direction);
+	MSP430_GPIO_Direction GetDirection(void);
+	void SetFunction(MSP430_GPIO_Function function);
+	void SetPullResistor(MSP430_GPIO_PullResistor sw);
 };
