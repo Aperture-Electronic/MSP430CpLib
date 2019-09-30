@@ -41,7 +41,7 @@ void MSP430_GPIO::HardLink(void)
 
 /// <summary>Create a new GPIO object, set the location only and let other parameters to default</summary>
 /// <param name="port">GPIO port</param>
-/// <param name="port">GPIO pin</param>
+/// <param name="pin">GPIO pin</param>
 MSP430_GPIO::MSP430_GPIO(MSP430_GPIO_Port port, MSP430_GPIO_Pin pin)
 {
 	this->port = port;
@@ -53,7 +53,7 @@ MSP430_GPIO::MSP430_GPIO(MSP430_GPIO_Port port, MSP430_GPIO_Pin pin)
 
 /// <summary>Create a new GPIO object, set the location, function and direction</summary>
 /// <param name="port">GPIO port</param>
-/// <param name="port">GPIO pin</param>
+/// <param name="pin">GPIO pin</param>
 /// <param name="function">GPIO function</param>
 /// <param name="direction">GPIO direction</param>
 MSP430_GPIO::MSP430_GPIO(MSP430_GPIO_Port port, MSP430_GPIO_Pin pin, MSP430_GPIO_Function function, MSP430_GPIO_Direction direction) : MSP430_GPIO::MSP430_GPIO(port, pin)
@@ -64,13 +64,19 @@ MSP430_GPIO::MSP430_GPIO(MSP430_GPIO_Port port, MSP430_GPIO_Pin pin, MSP430_GPIO
 
 /// <summary>Create a new GPIO object, set the location, function, direction and pullup/pulldown resistor</summary>
 /// <param name="port">GPIO port</param>
-/// <param name="port">GPIO pin</param>
+/// <param name="pin">GPIO pin</param>
 /// <param name="function">GPIO function</param>
 /// <param name="direction">GPIO direction</param>
 /// <param name="pullResistor">GPIO pullup/pulldown resistor enable/disable</param>
 MSP430_GPIO::MSP430_GPIO(MSP430_GPIO_Port port, MSP430_GPIO_Pin pin, MSP430_GPIO_Function function, MSP430_GPIO_Direction direction, MSP430_GPIO_PullResistor pullResistor) : MSP430_GPIO::MSP430_GPIO(port, pin, function, direction)
 {
 	this->pullResistor = pullResistor;
+}
+
+/// <summary>Delete this GPIO instance, reset the hardware registers, and free up all memory space</summary>
+MSP430_GPIO::~MSP430_GPIO()
+{
+	Deinitialize();
 }
 
 /// <summary>Enable the corresponding pin's interrupt and set its trig edge</summary>
@@ -89,7 +95,7 @@ void MSP430_GPIO::EnableInterrupt(MSP430_GPIO_InterruptTrig interruptTrig)
 void MSP430_GPIO::DisableInterrupt(void)
 {
 	this->interruptSw = MSP430_GPIO_InterruptSwitch::Off;
-
+	
 	// Set interrupt
 	REG_SBIT(reg_PxIE, pin, static_cast<int> (this->interruptSw));
 }
@@ -100,6 +106,7 @@ bool MSP430_GPIO::CheckInterruptFlag(void)
 	return REG_GBIT(reg_PxIFG, pin);
 }
 
+/// <summary>Clear the interrupt flag then interrupt can be re-detected</summary>
 void MSP430_GPIO::ClearInterruptFlag(void)
 {
 	REG_SBIT0(reg_PxIFG, pin);
@@ -154,7 +161,9 @@ void MSP430_GPIO::ReverseValue(void)
 	SetValue(~GetValue());
 }
 
-/// <summary>Reverse the corresponding GPIO's direction</summary>
+/// <summary>Reverse the corresponding GPIO's direction
+/// <para>NOTE: This function will read and effect on register directly.</para>
+/// </summary>
 void MSP430_GPIO::ReverseDirection(void)
 {
 	// Reverse the direction
@@ -255,3 +264,192 @@ void MSP430_GPIO::Deinitialize(void)
 	REG_SBIT(gpio.reg_PxSEL2, pin, 0);
 #endif
 }
+
+/// <summary>Hardware link from program to registers</summary>
+void MSP430_GPIO_Bank::HardLink(void)
+{
+	// Get the port register pointer, then link them
+	MSP430_GPIO_Port port = this->port;
+	this->reg_PxIN = PxIN[static_cast<int> (port)];
+	this->reg_PxOUT = PxOUT[static_cast<int> (port)];
+	this->reg_PxDIR = PxDIR[static_cast<int> (port)];
+	this->reg_PxREN = PxREN[static_cast<int> (port)]; 
+}
+
+/// <summary>Create a new GPIO bank object, set the port</summary>
+/// <param name="port">GPIO port</param>
+MSP430_GPIO_Bank::MSP430_GPIO_Bank(MSP430_GPIO_Port port)
+{
+	this->port = port;
+	
+	// Link the hardware
+	HardLink();
+}
+
+/// <summary>Create a new GPIO bank object, set the port and direction</summary>
+/// <param name="port">GPIO port</param>
+/// <param name="direction">GPIO direction</param>
+MSP430_GPIO_Bank::MSP430_GPIO_Bank(MSP430_GPIO_Port port, MSP430_GPIO_Direction direction) : MSP430_GPIO_Bank(port)
+{
+	this->direction = direction;
+}
+
+/// <summary>Create a new GPIO bank object, set the port, direction and pullup/pulldown resistor</summary>
+/// <param name="port">GPIO port</param>
+/// <param name="direction">GPIO direction</param>
+/// <param name="pullResistor">GPIO pullup/pulldown resistor enable/disable</param>
+MSP430_GPIO_Bank::MSP430_GPIO_Bank(MSP430_GPIO_Port port, MSP430_GPIO_Direction direction, MSP430_GPIO_PullResistor pullResistor) : MSP430_GPIO_Bank(port, direction)
+{
+	this->pullResistor = pullResistor;
+}
+
+/// <summary>Delete this GPIO bank instance, reset the hardware registers, and free up all memory space</summary>
+MSP430_GPIO_Bank::~MSP430_GPIO_Bank()
+{
+	Deinitialize();
+}
+
+/// <summary>
+/// Directly set the access mask for GPIO bank.
+/// <para>The data you read from or write to the GPIO bank will be mask with your setting.
+/// The 1 bit means data allowed, 0 bit means data no effect/para>
+/// </summary>
+/// <param name="mask">Access mask</param>
+void MSP430_GPIO_Bank::SetAccessMask(unsigned char mask)
+{
+	this->accessMask = mask;
+}
+
+/// <summary>
+/// Directly set the access mask for GPIO bank.
+/// <para>The data you read from or write to the GPIO bank will be mask with your setting.
+/// The significant bit is start from START and end to END</para>
+/// </summary>
+/// <param name="start">Least significant bit (LSB)</param>
+/// <param name="end">Most significant bit (MSB)</param>
+void MSP430_GPIO_Bank::SetAccessMask(unsigned char start, unsigned char end)
+{
+	unsigned char mask = (1 << (end + 1)) - 1;
+	mask &= ~((1 << start) - 1);
+	this->accessMask = mask;
+}
+
+/// <summary>Initialize a hardware GPIO bank by this GPIO bank instance</summary>
+void MSP430_GPIO_Bank::Initialize(void)
+{
+	// Select the stardand I/O function
+	REG_WM(PxSEL[static_cast<int> (port)], 0x00, accessMask);
+#ifdef GPIO_PORT_HAS_FUNSEL2
+	REG_WM(PxSEL2[static_cast<int> (port)], 0x00, accessMask);
+#endif
+	
+	// Close the interrupt
+	REG_WM(PxIE[static_cast<int> (port)], 0x00, accessMask);
+
+	// Set pin direction
+	REG_WM(this->reg_PxDIR, static_cast<int> (this->direction) ? 0xFF : 0x00, accessMask);
+
+	// Set pullup/pulldown resistor
+	REG_WM(this->reg_PxREN, static_cast<int> (this->pullResistor) ? 0xFF : 0x00, accessMask);
+}
+
+/// <summary>
+/// Deinitialize the corresponding hardware GPIO and set all registers to default.
+/// <para>(Default: Input, Resistor Off)</para>
+/// </summary>
+void MSP430_GPIO_Bank::Deinitialize(void)
+{
+	// Set direction
+	REG_WM(this->reg_PxDIR, 0x00, accessMask);
+
+	// Set pullup/pulldown resistor
+	REG_WM(this->reg_PxREN, 0x00, accessMask);
+}
+
+/// <summary>
+/// Set the GPIO bank output by a setting value
+/// <para>NOTE:The value data is masked by access mask.</para>
+/// </summary>
+/// <param name="value">GPIO bank output value</param>
+void MSP430_GPIO_Bank::SetValue(unsigned char value)
+{
+	REG_WM(this->reg_PxOUT, value, accessMask);
+}
+
+/// <summary>
+/// Get the GPIO bank input
+/// <para>NOTE:The return data is masked by access mask.</para>
+/// </summary>
+unsigned char MSP430_GPIO_Bank::GetValue(void)
+{
+	return REG_RM(this->reg_PxIN, accessMask);
+}
+
+/// <summary>
+/// Dymanically reverse the corresponding GPIO bank's value
+/// <para>NOTE: This function will read and effect on register directly.</para>
+/// </summary>
+void MSP430_GPIO_Bank::ReverseValue(void)
+{
+	SetValue(~GetValue());
+}
+
+/// <summary>Reverse the corresponding GPIO  bank's direction
+/// <para>NOTE: This function will read and effect on register directly.</para>
+/// </summary>
+void MSP430_GPIO_Bank::ReverseDirection(void)
+{
+	// Reverse the direction
+	if (this->direction == MSP430_GPIO_Direction::Input)
+	{
+		this->direction = MSP430_GPIO_Direction::Output;
+	}
+	else
+	{
+		this->direction = MSP430_GPIO_Direction::Input;
+	}
+
+	// Set pin direction
+	REG_WM(this->reg_PxDIR, static_cast<int> (this->direction) ? 0xFF : 0x00, accessMask);
+}
+
+/// <summary>
+/// Dymanically set the corresponding bank's direction
+/// <para>NOTE: This function will effect on register directly.</para>
+/// </summary>
+/// <param name="direction">Setting direction</param>
+void MSP430_GPIO_Bank::SetDirection(MSP430_GPIO_Direction direction)
+{
+	this->direction = direction;
+
+	// Set pin direction
+	REG_WM(this->reg_PxDIR, static_cast<int> (this->direction) ? 0xFF : 0x00, accessMask);
+}
+
+/// <summary>
+/// Get the corresponding bank's direction
+/// </summary>
+MSP430_GPIO_Direction MSP430_GPIO_Bank::GetDirection(void)
+{
+	return this->direction;
+}
+
+/// <summary>
+/// Dymanically set the corresponding bank's pullup/pulldown resistor
+/// <para>NOTE: This function will effect on register directly.</para>
+/// </summary>
+void MSP430_GPIO_Bank::SetPullResistor(MSP430_GPIO_PullResistor sw)
+{
+	this->pullResistor = sw;
+
+	// Set pullup/pulldown resistor
+	REG_WM(this->reg_PxREN, static_cast<int> (this->pullResistor) ? 0xFF : 0x00, accessMask);
+}
+
+
+
+
+
+
+
+

@@ -3,6 +3,24 @@
 // Global definations
 #define REG_8b volatile unsigned char*
 
+// Register operations
+/// <summary>Write data to register</summary>
+/// <param name="REG">Register address pointer</param>
+/// <param name="DATA">Data to write</param>
+#define REG_W(REG, DATA) (*(REG) = (DATA))
+/// <summary>Read data from register</summary>
+/// <param name="REG">Register address pointer</param>
+#define REG_R(REG) (*(REG))
+/// <summary>Write data to register with data mask</summary>
+/// <param name="REG">Register address pointer</param>
+/// <param name="DATA">Data to write</param>
+/// <param name="MASK">Data mask</param>
+#define REG_WM(REG, DATA, MASK) (*(REG) = ((*REG) & (~(MASK))) | ((DATA) & (MASK)))
+/// <summary>Read data from register with data mask</summary>
+/// <param name="REG">Register address pointer</param>
+/// <param name="MASK">Data mask</param>
+#define REG_RM(REG, MASK) (*(REG) & (MASK))
+
 // Register bit operations
 /// <summary>Set corresponding reigster bit to 1</summary>
 /// <param name="REG">Register address pointer</param>

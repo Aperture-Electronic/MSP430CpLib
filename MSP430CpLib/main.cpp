@@ -13,15 +13,15 @@ void MainLoop()
 {
 	WDTCTL = WDTPW | WDTHOLD;
 	
-	MSP430_GPIO led = MSP430_GPIO(MSP430_GPIO_Port::P4, 7);
-	led.Initialize();
-	led.DisableInterrupt();
+	MSP430_GPIO_Bank leds = MSP430_GPIO_Bank(MSP430_GPIO_Port::P1, MSP430_GPIO_Direction::Output);
+	leds.SetAccessMask(0, 3);
+	leds.Initialize();
 	
 	for (;;)
 	{
-		led.SetHigh();
+		leds.ReverseValue();
 		Delay(5000);
-		led.SetLow();
+		leds.ReverseValue();
 		Delay(5000);
 	}
 }
