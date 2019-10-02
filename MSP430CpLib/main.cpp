@@ -14,7 +14,7 @@ void MainLoop()
 	WDTCTL = WDTPW | WDTHOLD;
 	
 	MSP430_GPIO_Bank leds = MSP430_GPIO_Bank(MSP430_GPIO_Port::P1, MSP430_GPIO_Direction::Output);
-	leds.SetAccessMask(0, 3);
+	leds.SetAccessMask(1, 3);
 	leds.Initialize();
 	
 	for (;;)
