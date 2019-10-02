@@ -34,7 +34,7 @@ This library is based on official library from TI, and now support all of the de
 ## Function/Peripheral Support
 More and more functions and periperals support will add into this library. Please stay tuned.
 Now, this library have these function/peripheral support:
- * GPIO Pin (single pin)
+* GPIO Pin (single pin)
   * GPIO initialize (direction, function, pull resistors, etc.)
   * GPIO standard operate (write, read)
   * GPIO dynamic operate (reverse direction, reverse output, etc.)
